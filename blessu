@@ -1,0 +1,57 @@
+server {
+        listen 80;
+        listen [::]:80;
+
+        root /var/www/blessu.com/html;
+        index index.php index.html index.htm index.nginx-debian.html;
+
+        server_name blessu.com www.blessu.com;
+
+        location / {
+                try_files $uri $uri/ =404;
+		 if ($query_string ~ "^id=(.*)$"){
+    rewrite ^/certificates/$ /certificates/index.php?id=%1 break;
+  }
+  rewrite ^/([^/.]+)/?$ /user.php?$1 break;
+  rewrite "^/session/(\d{1,})/about/?$" /main/session/about.php?session_id=$1 break;
+  rewrite "^/badge/(\d{1,})" /main/badge/issued.php?issue=$1 break;
+  rewrite "^/skill/(\d{1,})/user/(\d{1,})" /main/badge/issued_all.php?skill=$1&user=$2 break;
+  rewrite "^/badge/(\d{1,})/user/(\d{1,})" /main/badge/issued_all.php?skill=$1&user=$2 break;
+
+        }
+	 location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php7.0-fpm.sock;
+    }
+
+    location ~ /\.ht { 
+        deny all;
+    }
+	location /tests {
+  return 403;
+}
+
+location /.git {
+  return 403;
+}
+
+location /courses {
+  rewrite ^/courses/([^/]+)/?$ /main/course_home/course_home.php?cDir=$1 break;
+  rewrite ^/courses/([^/]+)/index.php$ /main/course_home/course_home.php?cDir=$1 break;
+  rewrite ^/courses/([^/]+)/scorm/(.*)$ /main/document/download_scorm.php?doc_url=/$2&cDir=$1 break;
+  rewrite ^/courses/([^/]+)/document/certificates/(.*)$ /app/courses/$1/document/certificates/$2 break;
+  rewrite ^/courses/([^/]+)/document/(.*)$ /main/document/download.php?doc_url=/$2&cDir=$1 break;
+  rewrite ^/courses/([^/]+)/work/(.*)$ /main/work/download.php?file=work/$2&cDir=$1 break;
+  rewrite ^/courses/([^/]+)/upload/(.*)$ /app/courses/$1/upload/$2 break;
+  rewrite ^/courses/([^/]+)/(.*)$ /app/courses/$1/$2 break;
+  rewrite ^/courses/([^/]+)/course-pic85x85.png$ /app/courses/$1/course-pic85x85.png break;
+  rewrite ^/courses/([^/]+)/course-pic.png$ /app/courses/$1/course-pic.png break;
+}
+
+location /main {
+  rewrite ^/main/exercice/(.*)$ /main/exercise/$1 break;
+  rewrite ^/main/newscorm/(.*)$ /main/lp/$1 break;
+}
+
+
+}
